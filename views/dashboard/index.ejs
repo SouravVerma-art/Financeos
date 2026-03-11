@@ -1,0 +1,107 @@
+
+<div class="dashboard-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <div class="live-badge"><span class="live-dot"></span>Live Tracking</div>
+      <h1 class="page-title">Good <%= new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening' %>, <%= user.name.split(' ')[0] %> 👋</h1>
+      <p class="page-sub"><%= new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'}) %></p>
+    </div>
+    <a href="/transactions/new" class="btn-primary">+ Add Transaction</a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-balance">
+      <div class="stat-label">Net Balance</div>
+      <div class="stat-value" style="color: <%= balance >= 0 ? '#00FFB2' : '#FF6B6B' %>">
+        $<%= balance.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) %>
+      </div>
+      <div class="stat-hint">This month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Income</div>
+      <div class="stat-value" style="color:#4D96FF">
+        $<%= totalIncome.toLocaleString('en-US', {minimumFractionDigits:2}) %>
+      </div>
+      <div class="stat-hint">Current month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Expenses</div>
+      <div class="stat-value" style="color:#FF6B6B">
+        $<%= totalExpenses.toLocaleString('en-US', {minimumFractionDigits:2}) %>
+      </div>
+      <div class="stat-hint">Current month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Savings Rate</div>
+      <div class="stat-value" style="color:#FFD93D"><%= savingsRate %>%</div>
+      <div class="stat-hint">Of income saved</div>
+    </div>
+  </div>
+
+  <!-- Budget Progress -->
+  <% if (monthBudget > 0) { %>
+  <div class="glow-card" style="margin-bottom:20px">
+    <div class="card-label">Monthly Budget</div>
+    <div class="budget-bar-wrap">
+      <div class="budget-bar">
+        <div class="budget-fill" style="width:<%= Math.min((budgetUsed/monthBudget)*100,100) %>%; background:<%= budgetUsed > monthBudget ? '#FF6B6B' : '#00FFB2' %>"></div>
+      </div>
+      <span class="budget-text">$<%= budgetUsed.toFixed(0) %> / $<%= monthBudget.toFixed(0) %> (<%= ((budgetUsed/monthBudget)*100).toFixed(0) %>%)</span>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Charts Row -->
+  <div class="charts-grid">
+    <div class="glow-card">
+      <div class="card-label">6-Month Overview</div>
+      <canvas id="areaChart" height="200"></canvas>
+    </div>
+    <div class="glow-card">
+      <div class="card-label">Spending by Category</div>
+      <canvas id="pieChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Bar Chart -->
+  <div class="glow-card" style="margin-bottom:20px">
+    <div class="card-label">Income vs Expenses</div>
+    <canvas id="barChart" height="120"></canvas>
+  </div>
+
+  <!-- Recent Transactions -->
+  <div class="glow-card">
+    <div class="card-header-row">
+      <div class="card-label">Recent Transactions</div>
+      <a href="/transactions" class="card-link">View all →</a>
+    </div>
+    <% if (recentTransactions.length === 0) { %>
+      <div class="empty-state">No transactions yet. <a href="/transactions/new">Add one!</a></div>
+    <% } else { %>
+      <div class="tx-list">
+        <% recentTransactions.forEach(tx => { %>
+        <div class="tx-row">
+          <div class="tx-left">
+            <div class="tx-icon tx-icon-<%= tx.type %>"><%= tx.type === 'income' ? '↑' : '↓' %></div>
+            <div>
+              <div class="tx-name"><%= tx.name %></div>
+              <div class="tx-meta"><%= tx.category %> · <%= new Date(tx.date).toLocaleDateString() %></div>
+            </div>
+          </div>
+          <div class="tx-amount tx-amount-<%= tx.type %>">
+            <%= tx.type === 'income' ? '+' : '-' %>$<%= tx.amount.toLocaleString('en-US', {minimumFractionDigits:2}) %>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  const monthlyData = <%- monthlyData %>;
+  const categoryData = <%- categoryData %>;
+  initDashboardCharts(monthlyData, categoryData);
+</script>

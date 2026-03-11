@@ -1,0 +1,146 @@
+<div class="ai-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">AI Finance Advisor</h1>
+      <p class="page-sub">Powered by Gemini · Has access to your real financial data</p>
+    </div>
+    <div class="ai-status"><span class="live-dot"></span> Online</div>
+  </div>
+
+  <div class="ai-layout">
+    <!-- Chat Panel -->
+    <div class="glow-card ai-chat-card">
+      <div class="chat-header">
+        <div class="ai-avatar">✦</div>
+        <div>
+          <div class="ai-name">FinanceOS AI</div>
+          <div class="ai-role">Powered by Google Gemini</div>
+        </div>
+      </div>
+
+      <!-- Quick Prompts -->
+      <div class="quick-prompts">
+        <button class="quick-btn" onclick="sendQuick(this)">Analyze my spending</button>
+        <button class="quick-btn" onclick="sendQuick(this)">How can I save more?</button>
+        <button class="quick-btn" onclick="sendQuick(this)">My biggest expenses</button>
+        <button class="quick-btn" onclick="sendQuick(this)">Budget recommendations</button>
+        <button class="quick-btn" onclick="sendQuick(this)">Am I on track?</button>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg msg-ai">
+          <div class="msg-bubble">Hi! I'm your AI finance advisor. I have access to your real transaction data and can give you personalized insights. Ask me anything! 💡</div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Ask about your finances..." onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button id="sendBtn" onclick="sendMessage()" class="btn-primary">Send</button>
+      </div>
+    </div>
+
+    <!-- Tips Panel -->
+    <div class="ai-tips-panel">
+      <div class="glow-card">
+        <div class="card-label">💡 What to ask</div>
+        <ul class="tips-list">
+          <li>Breakdown of spending patterns</li>
+          <li>Personalized savings advice</li>
+          <li>Which categories to cut back on</li>
+          <li>Emergency fund recommendations</li>
+          <li>Monthly budget suggestions</li>
+          <li>Investment readiness check</li>
+          <li>Debt payoff strategies</li>
+        </ul>
+      </div>
+      <div class="glow-card" style="margin-top:16px">
+        <div class="card-label">🔐 Privacy</div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6">Your financial data is only used in the conversation context and is never stored by the AI service.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let chatHistory = [];
+
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    input.value = '';
+    input.disabled = true;
+    sendBtn.disabled = true;
+
+    appendMessage('user', msg);
+    showTyping();
+
+    // Send history WITHOUT current message — backend appends it
+    const historyToSend = [...chatHistory];
+
+    try {
+      const res = await fetch('/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, history: historyToSend.slice(-10) })
+      });
+
+      const data = await res.json();
+      removeTyping();
+
+      if (data.success && data.reply) {
+        appendMessage('ai', data.reply);
+        // Only push to history after successful round-trip
+        chatHistory.push({ role: 'user', content: msg });
+        chatHistory.push({ role: 'assistant', content: data.reply });
+      } else {
+        appendMessage('ai', data.reply || 'No response received. Please try again.');
+      }
+    } catch (e) {
+      removeTyping();
+      console.error('Chat error:', e);
+      appendMessage('ai', 'Connection error. Please check your internet and try again.');
+    } finally {
+      input.disabled = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  function sendQuick(btn) {
+    document.getElementById('chatInput').value = btn.textContent;
+    sendMessage();
+  }
+
+  function appendMessage(role, text) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `msg msg-${role}`;
+    // Convert markdown-style bold (**text**) and newlines
+    const formatted = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    div.innerHTML = `<div class="msg-bubble">${formatted}</div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function showTyping() {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'msg msg-ai typing-indicator';
+    div.id = 'typingDot';
+    div.innerHTML = '<div class="msg-bubble typing-bubble"><span></span><span></span><span></span></div>';
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingDot');
+    if (el) el.remove();
+  }
+</script>

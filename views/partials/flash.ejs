@@ -1,0 +1,14 @@
+<% if (typeof messages !== 'undefined') { %>
+  <% if (messages.success && messages.success.length > 0) { %>
+    <div class="flash flash-success">
+      <span>✅ <%= messages.success[0] %></span>
+      <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+    </div>
+  <% } %>
+  <% if (messages.error && messages.error.length > 0) { %>
+    <div class="flash flash-error">
+      <span>⚠️ <%= messages.error[0] %></span>
+      <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+    </div>
+  <% } %>
+<% } %>

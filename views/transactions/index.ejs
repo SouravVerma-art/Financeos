@@ -1,0 +1,102 @@
+
+<div class="transactions-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Transactions</h1>
+      <p class="page-sub"><%= total %> total records</p>
+    </div>
+    <a href="/transactions/new" class="btn-primary">+ Add Transaction</a>
+  </div>
+
+  <!-- Filters -->
+  <form action="/transactions" method="GET" class="filters-bar">
+    <div class="filter-group">
+      <select name="type" onchange="this.form.submit()">
+        <option value="all" <%= !filters.type || filters.type === 'all' ? 'selected' : '' %>>All Types</option>
+        <option value="income" <%= filters.type === 'income' ? 'selected' : '' %>>Income</option>
+        <option value="expense" <%= filters.type === 'expense' ? 'selected' : '' %>>Expense</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select name="category" onchange="this.form.submit()">
+        <option value="all">All Categories</option>
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat %>" <%= filters.category === cat ? 'selected' : '' %>><%= cat %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select name="sort" onchange="this.form.submit()">
+        <option value="date_desc" <%= filters.sort === 'date_desc' ? 'selected' : '' %>>Newest First</option>
+        <option value="date_asc" <%= filters.sort === 'date_asc' ? 'selected' : '' %>>Oldest First</option>
+        <option value="amount_desc" <%= filters.sort === 'amount_desc' ? 'selected' : '' %>>Highest Amount</option>
+        <option value="amount_asc" <%= filters.sort === 'amount_asc' ? 'selected' : '' %>>Lowest Amount</option>
+      </select>
+    </div>
+    <a href="/transactions" class="btn-ghost">Clear</a>
+  </form>
+
+  <!-- Table -->
+  <div class="glow-card table-card">
+    <% if (transactions.length === 0) { %>
+      <div class="empty-state">No transactions found. <a href="/transactions/new">Add your first!</a></div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% transactions.forEach(tx => { %>
+            <tr>
+              <td>
+                <div class="tx-name-cell">
+                  <div class="tx-icon-sm tx-icon-<%= tx.type %>"><%= tx.type === 'income' ? '↑' : '↓' %></div>
+                  <div>
+                    <div class="fw-600"><%= tx.name %></div>
+                    <% if (tx.note) { %><div class="tx-note"><%= tx.note %></div><% } %>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cat-badge cat-<%= tx.category.toLowerCase() %>"><%= tx.category %></span></td>
+              <td><span class="type-badge type-<%= tx.type %>"><%= tx.type %></span></td>
+              <td class="mono text-muted"><%= new Date(tx.date).toLocaleDateString() %></td>
+              <td class="fw-700 mono <%= tx.type === 'income' ? 'text-green' : 'text-red' %>">
+                <%= tx.type === 'income' ? '+' : '-' %>$<%= tx.amount.toFixed(2) %>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <a href="/transactions/<%= tx._id %>/edit" class="btn-icon">✏️</a>
+                  <form action="/transactions/<%= tx._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete this transaction?')">
+                    <button type="submit" class="btn-icon btn-delete">🗑️</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+      <div class="pagination">
+        <% if (currentPage > 1) { %>
+          <a href="/transactions?page=<%= currentPage - 1 %>&type=<%= filters.type || '' %>&category=<%= filters.category || '' %>&sort=<%= filters.sort || '' %>" class="page-btn">← Prev</a>
+        <% } %>
+        <span class="page-info">Page <%= currentPage %> of <%= totalPages %></span>
+        <% if (currentPage < totalPages) { %>
+          <a href="/transactions?page=<%= currentPage + 1 %>&type=<%= filters.type || '' %>&category=<%= filters.category || '' %>&sort=<%= filters.sort || '' %>" class="page-btn">Next →</a>
+        <% } %>
+      </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/dashboard" class="nav-brand">
+      <% if (typeof req !=='undefined' && req.session && req.session.userId) { %>
+        <span class="brand-dot"></span>
+        Finance<span class="brand-accent">OS</span>
+        <% } %>
+    </a>
+
+    <% if (typeof req !=='undefined' && req.session && req.session.userId) { %>
+      <ul class="nav-links">
+        <li><a href="/dashboard" class="nav-link <%= locals.path === '/dashboard' ? 'active' : '' %>">Dashboard</a></li>
+        <li><a href="/transactions"
+            class="nav-link <%= locals.path === '/transactions' ? 'active' : '' %>">Transactions</a></li>
+        <li><a href="/transactions/new" class="nav-link nav-add">+ Add</a></li>
+        <li><a href="/ai" class="nav-link <%= locals.path === '/ai' ? 'active' : '' %>">AI Advisor</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="nav-user">
+          <div class="user-avatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <span>
+            <%= req.session.userName %>
+          </span>
+        </div>
+        <a href="/auth/logout" class="btn-logout">Logout</a>
+      </div>
+      <% } %>
+
+        <button class="nav-toggle" id="navToggle">☰</button>
+  </div>
+</nav>
