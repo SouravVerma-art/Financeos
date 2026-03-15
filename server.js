@@ -1,5 +1,4 @@
 require("dotenv").config();
-// require("dotenv").config({ path: "../.env" });
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
 const session = require("express-session");
@@ -30,12 +29,15 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
 // ── Session & Flash ──────────────────────────────────────────────────
-app.use(session({
-  secret: process.env.SESSION_SECRET || "financeos_secret",
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "financeos_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 },
+  })
+);
+
 app.use(flash());
 
 // ── Global Locals ─────────────────────────────────────────────────────
@@ -61,14 +63,17 @@ app.get("/", (req, res) => {
   res.redirect("/auth/login");
 });
 
-// Health check (for sidebar / monitoring)
+// Health check
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, status: "up" });
 });
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).render("404", { title: "404 — Not Found", layout: "layouts/main" });
+  res.status(404).render("404", {
+    title: "404 — Not Found",
+    layout: "layouts/main",
+  });
 });
 
 // Error handler
@@ -77,9 +82,5 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something went wrong!");
 });
 
-// ── Start Server ──────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\n🚀 FinanceOS running on http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}\n`);
-});
+// ── IMPORTANT FOR VERCEL ─────────────────────────────────────────────
+module.exports = app;
